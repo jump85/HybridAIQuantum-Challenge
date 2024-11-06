@@ -31,6 +31,11 @@ Qualified participants will develop and submit enhanced solutions using the quan
 
 Email perceval-challenge@quandela.com with your team description (individual or group entries welcome). You'll receive confirmation and submission instructions.
 
+## Support
+
+For any general questions, please use Perceval Forum at https://perceval.quandela.net/forum/ with the tag `Perceval Quest`.
+For technical questions, please use the GitHub Discussions tab in this repository.
+
 ## Submission Requirements
 
 Your submission must include:
