@@ -5,7 +5,7 @@ Your challenge is to tackle the well-known MNIST problem using a hybrid quantum 
 The MNIST dataset consists of 70,000 handwritten digit images, each 28x28 pixels. For this quest, you'll work with a reduced dataset of 6,000 images and use a quantum kernel to predict the digits.
 ## Organization of the repository
 The dataset is located in the `data` folder, containing `train.csv` and `test.csv` files. 
-The notebook `MNIST_classification_quantum.ipynb` and its equivalent script, `training.py`, contain the training loop used for model training. The code for building quantum embeddings and integrating them into a basic classical model is splitted in separate scripts: the model is defined in `model.py`, the Boson Sampler in `boson_sampler.py` and some helper functions (dataset class for the the reduced dataset, accuracy function...) can be found in `utils.py`. 
+The notebook `MNIST_classification_quantum.ipynb` and its equivalent script, `training.py`, contain the training loop used for model training. The code for building quantum embeddings and integrating them into a basic classical model is split in separate scripts: the model is defined in `model.py`, the Boson Sampler in `boson_sampler.py` and some helper functions (dataset class for the the reduced dataset, accuracy function...) can be found in `utils.py`. 
 
 ## Challenge Rules
 
