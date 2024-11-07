@@ -61,9 +61,9 @@ Bonus points for:
 ## Timeline
 
 - Registration deadline: November 21st, 2024
-- Phase 1 submission: January 6th 2025, 8pm CET
+- Phase 1 submission daedline: January 6th 2025, 8pm CET
 - Phase 2 participant announcement: January 10th 2025
-- Phase 2 submission: March 14th 2025, 8pm CET
+- Phase 2 submission deadline: March 14th 2025, 8pm CET
 - Winners announcement: March 21st 2025
 
 ## Prizes
