@@ -8,15 +8,17 @@ The dataset is located in the `data` folder, containing `train.csv` and `test.cs
 
 ## Challenge Rules
 
-Use any classical machine learning model and demonstrate improved performance with the quantum kernel (see Evaluation Criteria).
+Use any classical machine learning model and demonstrate improved performance with the quantum model (see Evaluation Criteria).
 Submit your solution as a reproducible Jupyter notebook.
-Modify the provided quantum kernel as needed.
+Modify the provided quantum model as needed. It can rely on quantum kernels or other methods. 
+
 ## Challenge Structure
 
 The challenge consists of two phases:
 
 ### Phase 1 
-Participants submit an initial solution using the provided quantum kernel logic. The top 10 solutions will advance to Phase 2 based on:
+
+Participants submit an initial solution relying on the provided quantum model. The top 10 solutions will advance to Phase 2 based on:
 
 - Accuracy improvements
 - Creativity in approach
@@ -25,7 +27,8 @@ Participants submit an initial solution using the provided quantum kernel logic.
 Selected participants will receive credits for Scaleway GPU simulators to develop extended solutions in Phase 2.
 
 ### Phase 2 
-Qualified participants will develop and submit enhanced solutions using the quantum kernel logic.
+
+Qualified participants will further develop and submit enhanced solutions.
 
 ## How to Participate
 
@@ -41,11 +44,13 @@ For technical questions, please use the GitHub Discussions tab in this repositor
 Your submission must include:
 1. Complete code
 2. A brief report covering:
-   - Classical model description
-   - Quantum kernel implementation
-   - Comparative results (with/without quantum kernel)
+   - The classical model description
+   - The quantum model implementation such as quantum kernels
+   - Comparative results (with/without quantum model)
    - Training duration metrics
-   - ANy additional relevant insights
+   - Any additional relevant insights
+
+
 
 ## Evaluation Criteria
 
@@ -55,6 +60,7 @@ Solutions will be evaluated against classical models based on:
 - Model size optimization at equivalent accuracy
 
 Bonus points for:
+- Comprehensive benchmark of the proposed solution against a comparable, state-of-the-art classical approach.
 - Successful QPU validation
 - Creative approaches
 
