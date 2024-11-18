@@ -1,10 +1,12 @@
 # Welcome to the First Perceval Quest!
 
-<p align="center">
-  <img style="vertical-align: middle;" src="https://www.quandela.com/wp-content/themes/quandela/assets/images/quandela-logo.png" width="200" alt="Quandela Logo">
-  <span style="font-size: 36px; font-weight: bold;">&nbsp;&nbsp;×&nbsp;&nbsp;</span>
-<img style="vertical-align: middle;" src="https://www.scaleway.com/_next/static/media/logo.7e2996cb.svg" width="200" alt="Scaleway Logo">
-</p>
+<table align="center" border="0">
+<tr>
+  <td><img src="https://www.quandela.com/wp-content/themes/quandela/assets/images/quandela-logo.png" width="200" alt="Quandela Logo"></td>
+  <td valign="middle" style="font-size: 24px; font-weight: bold; padding: 0 20px;">×</td>
+  <td><img src="https://www.scaleway.com/_next/static/media/logo.7e2996cb.svg" width="200" alt="Scaleway Logo"></td>
+</tr>
+</table>
 
 ## About the Challenge
 
