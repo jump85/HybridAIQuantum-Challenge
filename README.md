@@ -1,5 +1,10 @@
 # Welcome to the First Perceval Quest!
 
+<p align="center">
+  <img src="https://www.quandela.com/wp-content/themes/quandela/assets/images/quandela-logo.png" width="300" alt="Quandela Logo">
+  <img src="https://www.scaleway.com/_next/static/media/logo.7e2996cb.svg" width="300" alt="Scaleway Logo">
+</p>
+
 ## About the Challenge
 
 The First Perceval Quest is jointly organized by Quandela and Scaleway to explore the intersection of quantum computing and machine learning through one of the most iconic machine learning benchmarks - the MNIST dataset.
