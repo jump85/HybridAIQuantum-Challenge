@@ -46,11 +46,14 @@ The challenge consists of two phases:
 
 ### Phase 1 
 
-Participants submit an initial solution relying on the provided quantum model. The top 10 solutions will advance to Phase 2 based on:
+Participants submit an initial solution (possibly based, but not restricted to, on the provided quantum model). The top 10 solutions will advance to Phase 2 based on:
 
-- Accuracy improvements potential as defined in the Evaluation Criteria
+- Accuracy improvements *potential* as defined in the Evaluation Criteria
 - Creativity in approach
 - Report quality
+
+Note tha the actual accuracy improvement is not a strict requirement for Phase 1 submission, however, clues that the 
+quantum model has the potential to improve the accuracy are expected.
 
 Selected participants will receive credits for Scaleway GPU simulators to develop extended solutions in Phase 2.
 
