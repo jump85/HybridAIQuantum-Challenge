@@ -96,7 +96,7 @@ Your submission must include:
 
 ## Evaluation Criteria
 
-Solutions will be evaluated against classical models based on:
+Solutions will be evaluated against the equivalent classical models based on:
 - Accuracy improvement
 - Convergence speed
 - Model size optimization at equivalent accuracy
@@ -108,7 +108,7 @@ Bonus points for:
 
 ## Timeline
 
-- Registration deadline: November 28th, 2024
+- Team Registration deadline (by email to perceval-challenge@quandela.com): December 6th, 2024
 - Phase 1 submission deadline: January 13th, 2025
 - Phase 2 participant announcement: January 17th, 2025
 - Phase 2 submission deadline: March 21st, 2025
