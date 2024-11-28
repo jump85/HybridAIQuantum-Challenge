@@ -1,10 +1,10 @@
 # Welcome to the First Perceval Quest!
 
-<table align="center" border="0">
+<table align="center" bgcolor="black">
 <tr>
-  <td style="background-color: black; padding: 10px;"><img src="https://www.quandela.com/wp-content/themes/quandela/assets/images/quandela-logo.png" width="200" alt="Quandela Logo"></td>
+  <td bgcolor="black" align="center" width="200"><img src="https://www.quandela.com/wp-content/themes/quandela/assets/images/quandela-logo.png" width="200" alt="Quandela Logo"></td>
   <td valign="middle" style="font-size: 24px; font-weight: bold; padding: 0 20px;">×</td>
-  <td style="background-color: black; padding: 10px;"><img src="https://www.scaleway.com/_next/static/media/logo.7e2996cb.svg" width="200" alt="Scaleway Logo"></td>
+  <td bgcolor="black" align="center" width="200"><img src="https://www.scaleway.com/_next/static/media/logo.7e2996cb.svg" width="200" alt="Scaleway Logo"></td>
 </tr>
 </table>
 
