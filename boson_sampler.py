@@ -21,7 +21,7 @@ class BosonSampler:
         """
         self.m = m
         self.n = n
-        assert n <= m, "Got more photons than modes, can only input 0 or 1 photon per mode"
+        assert n <= m, "Got more modes than photons, can only input 0 or 1 photon per mode"
         self.postselect = postselect or n
         assert self.postselect <= n, "Cannot postselect with more photons than the input number of photons"
         self.session = session
