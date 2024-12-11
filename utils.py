@@ -55,11 +55,6 @@ class MNIST_partial(Dataset):
         return img_square, label
 
 
-# to uncomment if you want to use the whole MNIST dataset and download it
-# # if you need to download MNIST
-# dataset = MNIST(root = '/home/jupyter-pemeriau/scaleway_demo/mnist-data/', download = True)
-# print(f"Total length of dataset = {len(dataset)}")
-
 
 ####################
 ## TRAINING UTILS ##
