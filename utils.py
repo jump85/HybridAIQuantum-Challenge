@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 # load the correct train, val dataset for the challenge, from the csv files
 class MNIST_partial(Dataset):
-    def __init__(self, data = '.\data', transform=None, split = 'train'):
+    def __init__(self, data = './data', transform=None, split = 'train'):
         """
         Args:
             data: path to dataset folder which contains train.csv and val.csv
