@@ -38,8 +38,8 @@ def fit(epochs, lr, model, train_loader, val_loader, bs: BosonSampler, opt_func 
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
-            training_losses+=int(loss.detach())
-            training_accs+=int(acc.detach())
+            training_losses+=float(loss.detach())
+            training_accs+=float(acc.detach())
             if model.embedding_size and step%100==0:
                 print(f"STEP {step}, Training-acc = {training_accs/(step+1)}, Training-losses = {training_losses/(step+1)}")
         
