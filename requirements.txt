@@ -1,4 +1,4 @@
-perceval-quandela==0.11.2
+perceval-quandela==0.12.0
 torch==2.*
 torchvision~=0.19
 tqdm==4.67.0
