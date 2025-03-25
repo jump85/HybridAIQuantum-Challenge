@@ -1,121 +1,79 @@
-# Welcome to the First Perceval Quest!
+# Hybrid Quantum-Classical MNIST Pipeline  
+*(by the Perceval Quantum2Pi Knights)*
 
-<table align="center" bgcolor="black">
-<tr>
-  <td bgcolor="black" align="center" width="200"><img src="./logos/quandela-logo-blackbg.png" width="200" alt="Quandela Logo"></td>
-  <td valign="middle" style="font-size: 24px; font-weight: bold; padding: 0 20px;">×</td>
-  <td bgcolor="black" align="center" width="200"><img src="./logos/scaleway-logo-blackbg.svg" width="200" alt="Scaleway Logo"></td>
-</tr>
-</table>
+This repository implements a hybrid machine learning pipeline that combines a classical Convolutional Neural Network (CNN) with a quantum embedding layer based on photonic boson sampling using Quandela’s Perceval library. Developed by the Quantum2Pi Knights, the project explores how quantum-enhanced feature encoding can improve MNIST digit classification while allowing easy switching between local simulation and remote quantum execution (e.g. via Scaleway QaaS).
 
-<div align="center">
-  <img width="48%" alt="Challenge-img" src="Challenge.png">
-  <p><em>Image credit: The valiant knight Dall-E</em></p>
-</div>
 
-## About the Challenge
+## Key Features
 
-The First Perceval Quest is jointly organized by Quandela and Scaleway to explore the intersection of quantum computing and machine learning through one of the most iconic machine learning benchmarks - the MNIST dataset.
+- **Hybrid Model Architecture:**  
+  - A CNN-based feature extractor transforms 28×28 images into a compact representation.
+  - A quantum embedding layer (via a BosonSampler) maps the CNN features into a quantum circuit, enabling interference-based encoding.
+  
+- **Modular Quantum Backend:**  
+  - Seamlessly switch between local simulation and remote execution on Scaleway QaaS via external configuration.
+  
+- **Interchangeable Optimization Methods:**  
+  - Supports multiple hyperparameter search strategies (e.g., TPE, grid search, Optuna) via a unified interface.
+  
+- **Performance Enhancements:**  
+  - **Caching:** Avoid redundant quantum computations with in‑memory and optional disk‑based persistent caching.  
+  - **Parallel Processing:** Utilize multi-threading or multiprocessing (via `concurrent.futures` or `torch.multiprocessing`) to compute quantum embeddings in parallel.  
+  - **Sparse Input Masking:** Optionally drop or mask portions of input images (structured or random) to reduce computational load and act as a form of data augmentation.  
+  - **Vectorized Operations:** Leverage PyTorch/NumPy vectorization to speed up mathematical operations and data processing.
 
-Your challenge is to tackle the well-known MNIST problem using a hybrid quantum model on a subset of the original dataset. The MNIST dataset consists of 70,000 handwritten digit images, each 28x28 pixels. For this quest, you'll work with a reduced dataset of 6,000 images and use a quantum kernel to predict the digits.
+- **Configurable via YAML:**  
+  - All critical parameters (such as quantum modes, optimization strategy, caching options, and backend selection) are set via external YAML config files.
 
-## Historical Context & Challenge Overview
 
-The MNIST (Modified National Institute of Standards and Technology) dataset was introduced by Yann LeCun et al. in 1994 and has served as a fundamental benchmark in the machine learning community for almost 30 years. This collection of handwritten digits has been instrumental in testing and validating numerous computer vision approaches, from traditional machine learning to deep neural networks.
+**Folder Overview:**
 
-While modern classical methods have achieved near-perfect accuracy on MNIST, our challenge takes a different approach. We're revisiting this iconic benchmark through the lens of quantum machine learning, not with the goal of surpassing classical accuracy records, but to explore novel quantum techniques and methodologies. To make the challenge more suitable for quantum processing, we're working with a reduced dataset of 6,000 images instead of the original 70,000, adding an interesting constraint that makes the problem more challenging and relevant for quantum approaches.
 
-## Photonic Quantum Computing & Perceval
+- **`src/`**  
+  Contains all core modules:  
+  - *boson_sampler.py*: Implements the quantum embedding using Perceval. 
+  - *config.py*: configs to switch between different setups (e.g., local vs. remote quantum backends, various hyperparameter optimizers). to use with the yaml file  
+  - *data_utils.py*: Loads and preprocesses MNIST data (with optional pixel masking).  
+  - *model_quantum.py*: Defines the hybrid CNN+quantum model.  
+  - *optimization.py*: Provides a unified interface for various hyperparameter search methods (TPE, grid search, Optuna, etc.).  
+  - *quantum_backend.py*: Manages the selection between local simulation and remote QaaS (e.g., Scaleway).  
+  - *utils.py*: Contains helper functions such as accuracy and plotting.
+  - *main_i.py*: Experiments scripts for running full training or optimization experiments, with logs and checkpoints stored in the `results/` subfolder.
 
-This challenge leverages photonic quantum computing, a promising quantum computing paradigm that uses light particles (photons) as quantum bits. Participants will use the Perceval framework, an open-source platform developed by Quandela for programming photonic quantum computers. You can learn more about Perceval and its capabilities at [perceval.quandela.net](https://perceval.quandela.net).
 
-## Quantum Computing Resources
+- **`notebooks/`**  
+  Interactive Jupyter notebooks for demonstration, exploration, and analysis. Notebooks serve as an all-in-one code that maps what is in the source files.
 
-Participants can develop small scale algorithms using local simulation and in phase 2 will have access to [Scaleway's Quantum-as-a-Service platform](https://labs.scaleway.com/en/qaas/), which provides both large-scale quantum simulators and actual QPU access. This platform enables participants to test and run their quantum algorithms in both simulated and real quantum environments.
+- **`data/`**  
+  Holds the dataset of the MNIST files.
 
-## Organization of the repository
-The dataset is located in the `data` folder, containing `train.csv` and `test.csv` files. 
-The notebook `MNIST_classification_quantum.ipynb` and its equivalent script, `training.py`, contain the training loop used for model training.
 
-An example code for building quantum embeddings and integrating them into a basic classical model is split in separate scripts: the model is defined in `model.py`, the Boson Sampler in `boson_sampler.py` and some helper functions (dataset class for the reduced dataset, accuracy function...) can be found in `utils.py`. 
+- **`results/`**  
+  Where outputs are saved.
 
-## Challenge Rules
 
-Use any classical machine learning model and demonstrate improved performance with a quantum model (see Evaluation Criteria).
-Submit your solution as a reproducible Jupyter notebook.
-Modify the provided quantum model as needed. It can rely on quantum kernels or other methods. 
+---
 
-## Challenge Structure
 
-The challenge consists of two phases:
 
-### Phase 1 
+## Installation
 
-Participants submit an initial solution (possibly based, but not restricted to, on the provided quantum model). The top 10 solutions will advance to Phase 2 based on:
+This project uses [Conda](https://docs.conda.io/en/latest/) for environment management. To set up the environment, run the following commands:
 
-- Accuracy improvements *potential* as defined in the Evaluation Criteria
-- Creativity in approach
-- Report quality
+```bash
+cd project-name
+conda env create -f environment.yml
+conda activate q2pi-hybrid-quantum-env
 
-Note tha the actual accuracy improvement is not a strict requirement for Phase 1 submission, however, clues that the 
-quantum model has the potential to improve the accuracy are expected.
+#in case of errors:
+#conda deactivate
+#conda env remove --name q2pi-hybrid-quantum-env
+#conda env list
+```
 
-Selected participants will receive credits for Scaleway GPU simulators to develop extended solutions in Phase 2.
 
-### Phase 2 
 
-Qualified participants will further develop and submit enhanced solutions.
 
-## Prizes
 
-The challenge offers exciting rewards for top performers:
 
-- 1st Place: €2,500
-- 2nd Place: €1,500
-- 3rd Place: €1,000
-- Top 10 Teams: Exclusive Quantum Computing Goodies
 
-Additionally, winners will:
-- Present their solution in a Perceval webinar
-- Have the opportunity to contribute to a scientific publication in collaboration with Quandela
-
-## How to Participate
-
-Email perceval-challenge@quandela.com with your team description (individual or group entries welcome). You'll receive confirmation and submission instructions.
-
-## Support
-
-For any general questions, please use Perceval Forum at https://perceval.quandela.net/forum/ with the tag `Perceval Quest`.
-For technical questions, please use the GitHub Discussions tab in this repository.
-
-## Submission Requirements
-
-Your submission must include:
-1. Complete code
-2. A brief report covering:
-   - The classical model description
-   - The quantum model implementation such as quantum kernels
-   - Comparative results (with/without quantum model)
-   - Training duration metrics
-   - Any additional relevant insights
-
-## Evaluation Criteria
-
-Solutions will be evaluated against the equivalent classical models based on:
-- Accuracy improvement
-- Convergence speed
-- Model size optimization at equivalent accuracy
-
-Bonus points for:
-- Comprehensive benchmark of the proposed solution against a comparable, state-of-the-art classical approach.
-- Successful QPU validation
-- Creative approaches
-
-## Timeline
-
-- Team Registration deadline (by email to perceval-challenge@quandela.com): December 6th, 2024
-- Phase 1 submission deadline: January 13th, 2025
-- Phase 2 participant announcement: January 17th, 2025
-- Phase 2 submission deadline: March 21st, 2025
-
-Good luck! We look forward to your submissions.
