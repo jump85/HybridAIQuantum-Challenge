@@ -19,17 +19,28 @@ def main():
         session.start()
     
     # 3. Initialize BosonSampler
-    from boson_sampler import BosonSampler, TriangularInterferometerBuilder, RectangularInterferometerBuilder, VariationalBosonSampler
+    from boson_sampler import BosonSampler, ConvolutionalInterferometerBuilder, TriangularInterferometerBuilder, RectangularInterferometerBuilder, VariationalBosonSampler, PdfInterferometerBuilder, BaseInterferometerBuilder
 
 
+
+    # Read circuit_type from your config (e.g., "pdf" or "alternative")
     circuit_type = cfg["quantum"].get("circuit_type", "triangular")
-    if circuit_type == "triangular":
+    if circuit_type == "pdf":
+        builder = PdfInterferometerBuilder()
+    elif circuit_type == "base":
+        builder = BaseInterferometerBuilder()
+    elif circuit_type == "triangular":
         builder = TriangularInterferometerBuilder()
     elif circuit_type == "rectangular":
         builder = RectangularInterferometerBuilder()
+    elif circuit_type == "convolutional":
+        # Define filters. Here we use random filters of shape (6,5) for demonstration.
+        import numpy as np
+        filterA = np.random.rand(6, 5)
+        filterB = np.random.rand(6, 5)
+        builder = ConvolutionalInterferometerBuilder(filterA, filterB, image_size=(28,28))
     else:
         raise ValueError(f"Unsupported circuit type: {circuit_type}")
-
 
     if cfg["quantum"].get("variational", False):
         bs = VariationalBosonSampler(

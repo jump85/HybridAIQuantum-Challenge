@@ -73,6 +73,67 @@ def accuracy(outputs, labels):
     return torch.tensor(torch.sum(preds == labels).item() / len(preds))
 
 
+def compute_downsample_shape(nb_params, target_aspect=1.0):
+    """
+    Compute a downsample shape (height, width) such that height * width == nb_params if possible.
+    If not, choose the factor pair that is as close as possible to a square (or the target aspect ratio).
+    target_aspect=1.0 corresponds to a square.
+    
+    Parameters:
+      nb_params: int - the desired total number of pixels (phase parameters)
+      target_aspect: float - desired aspect ratio (width/height), default 1.0
+      
+    Returns:
+      (height, width): tuple of ints representing the downsample shape.
+    """
+    from math import sqrt
+    # Try to find factor pairs exactly.
+    for h in range(int(sqrt(nb_params)), 0, -1):
+        if nb_params % h == 0:
+            w = nb_params // h
+            return h, w
+    # If no factor pair exactly divides nb_params, default to a square shape.
+    h = int(sqrt(nb_params))
+    return h, h
+
+
+
+ #####################
+# PCA Downsampling   #
+######################
+
+
+from sklearn.decomposition import PCA
+import numpy as np
+import torch
+
+def pca_downsample(image_tensor, pca_model):
+    """
+    Downsample a 28x28 image using a pre-trained PCA model.
+    
+    Parameters:
+      image_tensor: torch tensor of shape [1, 28, 28] (or [28,28])
+      pca_model: a scikit-learn PCA model pre-trained on flattened MNIST images
+      
+    Returns:
+      A torch tensor of shape [pca_model.n_components]
+    """
+    # Ensure the image is in 2D: if [1,28,28], remove the channel dimension.
+    if image_tensor.dim() == 3 and image_tensor.shape[0] == 1:
+        image_tensor = image_tensor.squeeze(0)
+    # Flatten the image (28*28)
+    img_flat = image_tensor.view(-1).cpu().numpy()
+    # Project the flattened image onto the PCA components
+    reduced = pca_model.transform([img_flat])[0]
+    # Convert back to a torch tensor
+    return torch.tensor(reduced, dtype=torch.float32)
+
+
+
+
+
+
+
 
 
 
@@ -96,3 +157,8 @@ def fourier_encode(image_tensor, n_features=100):
     fft_abs = torch.abs(fft_result).flatten()
     # Select the first n_features; you might also choose to sort or use a different selection method.
     return fft_abs[:n_features]
+
+
+
+
+

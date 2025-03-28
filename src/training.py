@@ -2,6 +2,10 @@ import torch
 from tqdm import tqdm
 import time
 from utils import plot_training_metrics
+from utils import compute_downsample_shape, pca_downsample
+import torch.nn.functional as F
+import os
+
 
 def fit(epochs, lr, model, train_loader, val_loader, bs, optimizer, cfg):
     """
@@ -10,6 +14,12 @@ def fit(epochs, lr, model, train_loader, val_loader, bs, optimizer, cfg):
     """
     history = []
     train_loss_list, train_acc_list, val_loss_list, val_acc_list = [], [], [], []
+    
+    
+    # Compute the downsample shape (e.g. (9, 14) if nb_parameters == 126)
+    downsample_shape = compute_downsample_shape(bs.nb_parameters)
+    print(f"Downsample shape for images set to: {downsample_shape[0]}x{downsample_shape[1]}")
+    
     for epoch in range(epochs):
         model.train()
         running_loss, running_acc = 0.0, 0.0
@@ -17,27 +27,30 @@ def fit(epochs, lr, model, train_loader, val_loader, bs, optimizer, cfg):
             if model.embedding_size:
                 # Assume batch contains a list of images if batch_size > 1.
                 images, labs = batch  # images shape: [B, 1, 28, 28]
-                # Remove extra dimensions if needed
-                image_list = [img.squeeze() for img in images]  # Each image now shape [28, 28]
-                # Generate quantum embedding from the image
-
-                # if cfg["quantum"].get("adaptive_sampling", False):
-                #     emb_list = bs.parallel_embed(image_list, bs.n_samples, adaptive=True, min_samples=100, tol=1e-3)
-                #     #emb = bs.adaptive_embed(images, min_samples=100, max_samples=bs.n_samples, tol=1e-3).unsqueeze(0)
-                #     #emb = bs.adaptive_embed(img_proc, min_samples=100, max_samples=bs.n_samples, tol=1e-3)
-                # else:
-                #     emb_list = bs.parallel_embed(image_list, bs.n_samples, adaptive=False)
-                #     #emb = bs.embed(images, bs.n_samples).unsqueeze(0)
-                # #embeddings.append(emb)
-
+                # Process each image sequentially (QaaS does not handle batching well)
                 emb_list = []
-                for img in image_list:
-                    if cfg["quantum"].get("adaptive_sampling", False):
-                        emb = bs.adaptive_embed(img, min_samples=100, max_samples=bs.n_samples, tol=1e-3)
-                    else:
-                        emb = bs.embed(img, bs.n_samples)
-                    emb_list.append(emb)
+                for img in images:
 
+                    if cfg["quantum"].get("downsample_method", "bilinear") == "pca":
+                        # Load your pre-trained PCA model (ensure you have it saved in pca_model.pkl)
+                        import pickle
+                        with open(os.path.join("data", "pca_model.pkl"), "rb") as f:
+                            pca_model = pickle.load(f)
+                        # Use the PCA-based downsampling and assign to img_resized
+                        img_resized  = pca_downsample(img, pca_model)
+                    else:
+                        # Use bilinear interpolation as fallback
+                        # Using sequential embedding (remove parallel_embed call)
+                        # Add batch and channel dimensions: [1, 1, 28, 28]
+                        img_expanded = img.unsqueeze(0)  # now shape: [1, 1, 28, 28]
+                        # Resize image to computed downsample shape.  (e.g. (9,14))
+                        img_resized = F.interpolate(img_expanded, size=downsample_shape, mode='bilinear', align_corners=False)
+                        # Remove batch and channel dims: shape becomes [height, width]  resulting shape becomes [1, 9, 14]
+                        img_resized = img_resized.squeeze(0)
+                        # Now the flattened tensor has exactly downsample_shape[0]*downsample_shape[1] pixels.
+  
+                    emb = bs.embed(img_resized, bs.n_samples)
+                    emb_list.append(emb)
 
                 # Stack embeddings and add the batch dimension if needed.
                 #embeddings = torch.stack(embeddings)  # shape: [B, embedding_size]
@@ -57,6 +70,10 @@ def fit(epochs, lr, model, train_loader, val_loader, bs, optimizer, cfg):
                 #loss, acc = model.training_step(batch, emb=emb)
             else:
                 loss, acc = model.training_step(batch)
+            
+            #if step % 50 == 0:
+            tqdm.write(f"Step {step}: loss={loss.item():.4f}, acc={acc.item():.4f}")
+
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()

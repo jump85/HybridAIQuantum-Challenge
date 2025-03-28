@@ -1,6 +1,7 @@
 # src/config.py
 import os
 import yaml
+from decouple import config as decouple_config
 
 def load_config(config_path="yaml_default_config.yaml"):
     """
@@ -18,8 +19,9 @@ def create_scaleway_session(cfg):
     Expects SCW_PROJECT_ID and SCW_SECRET_KEY to be set in the environment.
     """
     import perceval.providers.scaleway as scw
-    proj_id = os.environ.get("SCW_PROJECT_ID")
-    token = os.environ.get("SCW_SECRET_KEY")
+    # Get credentials from the .env file using python-decouple.
+    proj_id = decouple_config("SCW_PROJECT_ID") # 
+    token = decouple_config("SCW_SECRET_KEY") # 
     platform = cfg["quantum"].get("scaleway_platform", "sim:sampling:p100")
     if not proj_id or not token:
         raise RuntimeError("Scaleway credentials not found in environment.")

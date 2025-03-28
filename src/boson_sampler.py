@@ -7,9 +7,36 @@ import torch.nn as nn
 import os
 import hashlib
 import pickle
-
+import numpy as np
+from scipy.signal import convolve2d
 
 from abc import ABC, abstractmethod
+
+
+def merge_circuits(c1, c2):
+    """
+    Merge two circuits by creating a new composite circuit.
+    This helper creates a new circuit with the same number of modes as c1,
+    and adds c1 and then c2 using the add() method with merge=True.
+    """
+    composite = pcvl.Circuit(c1.m)
+    # Add the first circuit on port 0 and merge it into the composite circuit.
+    composite.add(0, c1, merge=True)
+    # Add the second circuit similarly.
+    composite.add(0, c2, merge=True)
+    return composite
+
+def compose_circuits(circuit_list):
+    """
+    Compose a list of circuits into a single circuit using merge_circuits.
+    """
+    composite = circuit_list[0]
+    for circ in circuit_list[1:]:
+        composite = merge_circuits(composite, circ)
+    return composite
+
+
+
 
 class InterferometerBuilder(ABC):
     @abstractmethod
@@ -42,13 +69,178 @@ class RectangularInterferometerBuilder(InterferometerBuilder):
         # For demonstration, we build two layers sequentially.
         # (Note: In practice, you’d implement the proper rectangular mesh.)
         layer1 = pcvl.GenericInterferometer(m, lambda idx: (
-                    pcvl.BS().add(0, pcvl.PS(parameters[2 * idx]))
-               ))
+            pcvl.BS().add(0, pcvl.PS(safe_param(2 * idx, parameters)))
+        ))
         layer2 = pcvl.GenericInterferometer(m, lambda idx: (
-                    pcvl.BS().add(0, pcvl.PS(parameters[2 * idx + 1]))
-               ))
-        # If Perceval supports circuit composition via the >> operator, we can compose:
-        return layer1 >> layer2
+            pcvl.BS().add(0, pcvl.PS(safe_param(2 * idx + 1, parameters)))
+        ))
+        return merge_circuits(layer1, layer2)
+
+
+
+class PdfInterferometerBuilder:
+    def create_circuit(self, m: int, parameters=None) -> pcvl.Circuit:
+        """
+        Create a circuit as described in Quantum_Circuits.pdf.
+        Expects 'parameters' to be either:
+          - A dict with keys 'theta', 'alpha', and 'beta'
+            where 'theta' is a list of three phase values,
+                  'alpha' is a list of two values for the first BS block, and
+                  'beta' is a list of two values for the second BS block,
+          - Or a list of at least 7 numbers, which will be interpreted as
+            theta[0:3], alpha[0:2], beta[0:2].
+        """
+        if parameters is None:
+            parameters = {
+                'theta': [pcvl.P("theta1"), pcvl.P("theta2"), pcvl.P("theta3")],
+                'alpha': [0.1, 0.2],
+                'beta': [0.3, 0.4]
+            }
+        elif not isinstance(parameters, dict):
+            # Assume parameters is a list; require at least 7 values
+            if len(parameters) < 7:
+                raise ValueError("PDFInterferometerBuilder requires at least 7 parameters when provided as a list.")
+            parameters = {
+                'theta': parameters[:3],
+                'alpha': parameters[3:5],
+                'beta': parameters[5:7]
+            }
+        
+        def U_block(m, theta):
+            sub = pcvl.Circuit(m)
+            # Apply a phase shift on each mode with the same theta.
+            for mode in range(m):
+                sub.add(mode, pcvl.PS(theta), merge=True)
+            return sub
+        
+        def BS_block(m, bs_params):
+            sub = pcvl.Circuit(m)
+            # For demonstration, add a beam splitter between modes 0 and 1.
+            sub.add((0, 1), pcvl.BS(), merge=True)
+            return sub
+        
+        circuit = pcvl.Circuit(m)
+        circuit = circuit.add(0, U_block(m, parameters['theta'][0]), merge=True)
+        circuit = circuit.add(0, BS_block(m, parameters['alpha']), merge=True)
+        circuit = circuit.add(0, U_block(m, parameters['theta'][1]), merge=True)
+        circuit = circuit.add(0, BS_block(m, parameters['beta']), merge=True)
+        circuit = circuit.add(0, U_block(m, parameters['theta'][2]), merge=True)
+        return circuit
+
+
+class BaseInterferometerBuilder:
+    def create_circuit(self, m: int, parameters: list = None) -> pcvl.Circuit:
+        """
+        Create an alternative interferometer circuit using a simplified rectangular layout.
+        If no parameters are provided, generate a list of symbolic parameters of length m*(m-1).
+        The lambda uses these parameters in pairs.
+        """
+        # Compute the expected total number of phases (should be m*(m-1))
+        total_needed = m * (m - 1)
+        if parameters is None:
+            parameters = [pcvl.P(f"phi_{i}") for i in range(total_needed)]
+        
+        def base_lambda(i):
+            # Use the actual length of parameters to avoid index errors.
+            # Each pair of parameters is used for one layer.
+            num_pairs = len(parameters) // 2
+            j = i % num_pairs
+            return (pcvl.BS()
+                    .add(0, pcvl.PS(parameters[2 * j]), merge=True)
+                    .add(0, pcvl.BS(), merge=True)
+                    .add(0, pcvl.PS(parameters[2 * j + 1]), merge=True))
+        
+        circuit = pcvl.GenericInterferometer(m, base_lambda)
+        return circuit
+
+
+
+class ConvolutionalInterferometerBuilder:
+    def __init__(self, filterA, filterB, image_size=(28, 28)):
+        """
+        Initialize with filterA and filterB (numpy arrays) and the expected image size.
+        For example, use filterA and filterB of shape (6,5) to yield 23x24=552 outputs.
+        """
+        self.filterA = filterA
+        self.filterB = filterB
+        self.image_size = image_size
+
+    def create_circuit(self, m: int, parameters: list = None) -> pcvl.Circuit:
+        """
+        Constructs a full circuit that interleaves trainable U-blocks with convolutional encoding blocks.
+        The conv encoding blocks use parameters for α and β.
+        If 'parameters' is None, symbolic parameters are used for the conv blocks.
+        Otherwise, 'parameters' is assumed to be a list containing [alpha_flat, beta_flat] concatenated.
+        """
+        expected_length = m * (m - 1)  # For a triangular interferometer
+        
+        # Expected output sizes from valid convolution:
+        filterA_shape = self.filterA.shape  # e.g., (6,5)
+        filterB_shape = self.filterB.shape  # e.g., (6,5)
+        alpha_rows = self.image_size[0] - filterA_shape[0] + 1
+        alpha_cols = self.image_size[1] - filterA_shape[1] + 1
+        beta_rows  = self.image_size[0] - filterB_shape[0] + 1
+        beta_cols  = self.image_size[1] - filterB_shape[1] + 1
+        alpha_out_len = alpha_rows * alpha_cols  # e.g., 23*24 = 552
+        beta_out_len  = beta_rows * beta_cols
+
+        if parameters is None:
+            # Use symbolic parameters for the conv blocks.
+            alpha_params = [pcvl.P(f"alpha_{i}") for i in range(alpha_out_len)]
+            beta_params  = [pcvl.P(f"beta_{j}") for j in range(beta_out_len)]
+        else:
+            # Split the provided parameter list into alpha and beta portions.
+            alpha_params = parameters[:alpha_out_len]
+            beta_params  = parameters[alpha_out_len:alpha_out_len+beta_out_len]
+
+        # Truncate the conv parameters to the expected length.
+        if len(alpha_params) > expected_length:
+            alpha_params = alpha_params[:expected_length]
+        if len(beta_params) > expected_length:
+            beta_params = beta_params[:expected_length]
+        # Optionally, pad if fewer (not likely with full convolution)
+        if len(alpha_params) < expected_length:
+            alpha_params.extend([0.0]*(expected_length - len(alpha_params)))
+        if len(beta_params) < expected_length:
+            beta_params.extend([0.0]*(expected_length - len(beta_params)))
+        
+        # Build sub-circuits:
+        U1 = pcvl.GenericInterferometer(m, lambda idx: pcvl.BS() // pcvl.PS(pcvl.P(f"theta1_{idx}")), shape=pcvl.InterferometerShape.TRIANGLE)
+        U2 = pcvl.GenericInterferometer(m, lambda idx: pcvl.BS() // pcvl.PS(pcvl.P(f"theta2_{idx}")), shape=pcvl.InterferometerShape.TRIANGLE)
+        U3 = pcvl.GenericInterferometer(m, lambda idx: pcvl.BS() // pcvl.PS(pcvl.P(f"theta3_{idx}")), shape=pcvl.InterferometerShape.TRIANGLE)
+        Conv1 = pcvl.GenericInterferometer(m, lambda idx: pcvl.BS() // pcvl.PS(alpha_params[idx]), shape=pcvl.InterferometerShape.TRIANGLE)
+        Conv2 = pcvl.GenericInterferometer(m, lambda idx: pcvl.BS() // pcvl.PS(beta_params[idx]), shape=pcvl.InterferometerShape.TRIANGLE)
+        
+        # Compose the full circuit by merging the sub-circuits.
+        full_circuit = compose_circuits([U1, Conv1, U2, Conv2, U3])
+        return full_circuit
+
+
+
+    def compute_conv_parameters(self, image_tensor: np.ndarray) -> list:
+        """
+        Given an input image (as a numpy array), compute the convolution outputs for filterA and filterB,
+        normalize them to the [0, 2π] range, and return the concatenated phase parameter list.
+        If the input is 1D, reshape it to 2D using a factorization of its length.
+        """
+        if image_tensor.ndim != 2:
+            if image_tensor.ndim == 1:
+                # Import the downsample shape helper from utils
+                from utils import compute_downsample_shape
+                h, w = compute_downsample_shape(image_tensor.size)
+                image_tensor = image_tensor.reshape((h, w))
+            else:
+                raise ValueError("Input image_tensor must be 2D after squeezing.")
+        
+        # Compute valid convolutions.
+        alpha = convolve2d(image_tensor, self.filterA, mode="valid")
+        beta  = convolve2d(image_tensor, self.filterB, mode="valid")
+        # Flatten and normalize: here we use modulo 1 and scale to 2π (adjust normalization as needed)
+        alpha_flat = (alpha.flatten() % 1.0) * 2 * np.pi
+        beta_flat  = (beta.flatten() % 1.0) * 2 * np.pi
+        param_vec = np.concatenate([alpha_flat, beta_flat])
+        return param_vec.tolist()
+
 
 
 
@@ -136,7 +328,15 @@ class BosonSampler:
         """Configure the given processor with the circuit, input state, and detection filters."""
         processor.set_circuit(self.create_circuit(parameters))
         processor.min_detected_photons_filter(self.postselect)  # enforce minimum detected photons
-        processor.thresholded_output(True)  # use threshold detectors (no photon-number resolution)
+        #processor.thresholded_output(True)   # <- DEPRECATED # use threshold detectors (no photon-number resolution)
+        
+        
+        from perceval.components import Detector
+        for mode in range(self.m):
+            processor.add(mode, Detector.threshold())
+        
+        
+        
         # Prepare an input state with n photons evenly spaced in m modes (e.g., [1,0,1,0,...] for 2 photons)
         input_state = [0] * self.m
         if self.n > 0:
@@ -291,20 +491,26 @@ class BosonSampler:
                 with open(cache_file, "rb") as f:
                     return pickle.load(f)
 
-        # Compute embedding if not cached.
-        flat = data_tensor.flatten()
-        if flat.shape[0] > self.nb_parameters:
-            raise ValueError("Input tensor too large for the number of modes/photons")
 
-
-        # Prepare phase parameters: pad/truncate to fill the interferometer.
-        # Pad or truncate the phases vector to fill all required phase shifters
-        #self.nb_parameters == phase_count = self.m * (self.m - 1)  # number of phase parameters needed for full interferometer
-        phases = torch.zeros(self.nb_parameters)
-        # Use data values (scaled 0-1) for the first part of phases, remaining stay 0
-        phases[:flat.shape[0]] = flat
-        # Scale phases from [0,1] to [0, 2π] as phase shifts
-        phase_list = (phases * 2 * torch.pi).tolist()
+     # Check if using convolutional embedding.
+        from boson_sampler import ConvolutionalInterferometerBuilder  # ensure proper import
+        if isinstance(self.builder, ConvolutionalInterferometerBuilder):
+            # Convert data_tensor to numpy array (assume shape (1,28,28) or (28,28))
+            img_np = data_tensor.squeeze().cpu().numpy()
+            phase_list = self.builder.compute_conv_parameters(img_np)
+        else:
+            # Compute embedding if not cached.
+            flat = data_tensor.flatten()
+            if flat.shape[0] > self.nb_parameters:
+                raise ValueError("Input tensor too large for the number of modes/photons")
+            # Prepare phase parameters: pad/truncate to fill the interferometer.
+            # Pad or truncate the phases vector to fill all required phase shifters
+            #self.nb_parameters == phase_count = self.m * (self.m - 1)  # number of phase parameters needed for full interferometer
+            phases = torch.zeros(self.nb_parameters)
+            # Use data values (scaled 0-1) for the first part of phases, remaining stay 0
+            phases[:flat.shape[0]] = flat
+            # Scale phases from [0,1] to [0, 2π] as phase shifts
+            phase_list = (phases * 2 * torch.pi).tolist()
 
 
         # For variational sampler, self.run expects only n_samples.
@@ -318,6 +524,7 @@ class BosonSampler:
 
 
         # Convert distribution to a fixed-length probability vector
+        #feature_vec = self._distribution_to_feature_vector(distribution)
         feature_vec = torch.zeros(self.embedding_size)
         state_list = self._generate_all_output_states()  # list of BasicState outcomes in canonical order
         for i, state in enumerate(state_list):
@@ -351,6 +558,9 @@ class BosonSampler:
     def parallel_embed(self, image_list, n_samples, adaptive=False, min_samples=100, tol=1e-3):
         """
         Compute embeddings for a list of images concurrently.
+        NOTE: This method is useful for local simulation. 
+            However, QaaS (remote) does not handle batch processing well.
+            It is recommended to process images sequentially when using the remote platform.
         Parameters:
           image_list : List of image tensors.
           n_samples  : Maximum number of samples for each embedding.

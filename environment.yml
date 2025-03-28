@@ -7,6 +7,8 @@ dependencies:
   - numpy
   - pandas==2.2.3
   - matplotlib
+  - scikit-learn
+  - seaborn
   - scipy
   - jupyter
   - pytorch=2.*      # Ensure torch 2.x is installed
@@ -19,3 +21,4 @@ dependencies:
       - perceval-quandela==0.12.*
       - joblib
       - optuna
+      - python-decouple

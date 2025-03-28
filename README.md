@@ -30,6 +30,7 @@ This repository implements a hybrid machine learning pipeline that combines a cl
 
 
 - **`src/`**  
+  Folder contains all the source code for the classical and quantum models.
   Contains all core modules:  
   - *boson_sampler.py*: Implements the quantum embedding using Perceval. 
   - *config.py*: configs to switch between different setups (e.g., local vs. remote quantum backends, various hyperparameter optimizers). to use with the yaml file  
@@ -45,11 +46,13 @@ This repository implements a hybrid machine learning pipeline that combines a cl
   Interactive Jupyter notebooks for demonstration, exploration, and analysis. Notebooks serve as an all-in-one code that maps what is in the source files.
 
 - **`data/`**  
-  Holds the dataset of the MNIST files.
+  - Holds the dataset of the MNIST files. `train.csv` and `test.csv` files (the reduced MNIST dataset).
+  - `pca_model.pkl`: The PCA model used to reduce the dimensionality of the images. This model is automatically generated during training and can be reused in subsequent experiments (including the quantum embedding pipeline).
+
 
 
 - **`results/`**  
-  Where outputs are saved.
+  Where outputs are saved.  Stores all the outputs, including visualizations and performance reports.
 
 
 ---
