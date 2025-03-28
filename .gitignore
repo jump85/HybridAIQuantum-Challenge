@@ -1,2 +1,3 @@
 results/cache/**
 src/__pycache__/*
+.env
