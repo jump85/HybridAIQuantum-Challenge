@@ -5,6 +5,13 @@ from utils import plot_training_metrics
 from utils import compute_downsample_shape, pca_downsample
 import torch.nn.functional as F
 import os
+import pickle
+
+# Get the directory of this file (training.py)
+base_dir = os.path.dirname(os.path.abspath(__file__))
+# Go up one level (assuming your project structure has 'src' and 'data' as siblings)
+data_dir = os.path.join(base_dir, "..", "data")
+pca_model_path = os.path.join(data_dir, "pca_model.pkl")
 
 
 def fit(epochs, lr, model, train_loader, val_loader, bs, optimizer, cfg):
@@ -33,8 +40,7 @@ def fit(epochs, lr, model, train_loader, val_loader, bs, optimizer, cfg):
 
                     if cfg["quantum"].get("downsample_method", "bilinear") == "pca":
                         # Load your pre-trained PCA model (ensure you have it saved in pca_model.pkl)
-                        import pickle
-                        with open(os.path.join("data", "pca_model.pkl"), "rb") as f:
+                        with open(pca_model_path, "rb") as f:
                             pca_model = pickle.load(f)
                         # Use the PCA-based downsampling and assign to img_resized
                         img_resized  = pca_downsample(img, pca_model)
@@ -114,17 +120,44 @@ def evaluate(model, val_loader, bs, cfg):
     """
     model.eval()
     outputs = []
+
+    # Compute the target downsample shape (e.g. 9x14 if bs.nb_parameters equals 126)
+    downsample_shape = compute_downsample_shape(bs.nb_parameters)
+
     with torch.no_grad():
         for batch in val_loader:
             if model.embedding_size:
-                
-                images, labs = batch
-                images = images.squeeze(0).squeeze(0)
-                if cfg["quantum"].get("adaptive_sampling", False):
-                    emb = bs.adaptive_embed(images, min_samples=100, max_samples=bs.n_samples, tol=1e-3).unsqueeze(0)
-                else:
-                    emb = bs.embed(images, bs.n_samples).unsqueeze(0)
-                out = model.validation_step(batch, emb=emb)
+                images, labs = batch # images shape: [B, 1, 28, 28]
+                batch_embeddings = []
+                # Process each image in the batch individually:
+                for i in range(images.size(0)):
+                    img = images[i]  # shape: [1, 28, 28]
+                    # Apply downsampling based on the chosen method.
+                    if cfg["quantum"].get("downsample_method", "bilinear") == "pca":
+                        # Load the PCA model (ensure the path is correct)
+                        with open(pca_model_path, "rb") as f:
+                            pca_model = pickle.load(f)
+                        img_resized = pca_downsample(img, pca_model)
+                    else:
+                        # Use bilinear interpolation
+                        # Expand dimensions to [1, 1, 28, 28] if needed.
+                        img_expanded = img.unsqueeze(0)
+                        img_resized = F.interpolate(img_expanded, size=downsample_shape, mode='bilinear', align_corners=False)
+                        img_resized = img_resized.squeeze(0)
+
+
+                    # Now img_resized should have exactly downsample_shape[0]*downsample_shape[1] pixels.
+                    # Compute the quantum embedding.
+                    # Depending on configuration, use adaptive or standard embedding
+                    if cfg["quantum"].get("adaptive_sampling", False):
+                        emb = bs.adaptive_embed(img_resized, min_samples=100, max_samples=bs.n_samples, tol=1e-3)
+                    else:
+                        emb = bs.embed(img_resized, bs.n_samples)
+                    batch_embeddings.append(emb)
+                # Stack embeddings to form a tensor of shape [B, embedding_size]
+                emb_tensor = torch.stack(batch_embeddings)
+                # Pass the batch and the corresponding embeddings to the model's validation step
+                out = model.validation_step((images, labs), emb=emb_tensor)
             else:
                 out = model.validation_step(batch)
             outputs.append(out)

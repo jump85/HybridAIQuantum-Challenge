@@ -16,7 +16,10 @@ class MNIST_partial(Dataset):
         :param transform: Optional transform function.
         :param split: "train" or "val"
         """
-        self.data_dir = data
+        # Compute the base directory (directory of this file)
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        # If 'data' is given as a relative path, make it absolute relative to this file:
+        self.data_dir = os.path.join(base_dir, "..", data)
         self.transform = transform
         if split == "train":
             filename = os.path.join(self.data_dir, "train.csv")
