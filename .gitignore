@@ -1,3 +1,5 @@
 results/cache/**
 src/__pycache__/*
 .env
+.DS_Store
+results/.DS_Store
