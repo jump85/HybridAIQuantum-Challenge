@@ -1,11 +1,10 @@
 # src/main.py
 import torch
 print(torch.cuda.is_available())
-from config import load_config, create_scaleway_session
 from boson_sampler import BosonSampler
 from model import MnistModel, HybridMnistModel
 from training import fit
-from utils import MNIST_partial, get_dataloader
+from utils import MNIST_partial, get_dataloader, load_config, create_scaleway_session
 
 def main():
     # 1. Load configuration from default_config.yaml
