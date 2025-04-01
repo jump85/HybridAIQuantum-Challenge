@@ -9,7 +9,7 @@ import json
 import pickle
 
 # Import configuration, models, training routines, and utilities.
-from config import load_config, create_scaleway_session
+from utils import load_config, create_scaleway_session
 from boson_sampler import BosonSampler, VariationalBosonSampler, ConvolutionalInterferometerBuilder, TriangularInterferometerBuilder, RectangularInterferometerBuilder, PdfInterferometerBuilder, BaseInterferometerBuilder
 from model import MnistModel, HybridMnistModel
 from training import fit, evaluate

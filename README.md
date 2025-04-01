@@ -33,12 +33,10 @@ This repository implements a hybrid machine learning pipeline that combines a cl
   Folder contains all the source code for the classical and quantum models.
   Contains all core modules:  
   - *boson_sampler.py*: Implements the quantum embedding using Perceval. 
-  - *config.py*: configs to switch between different setups (e.g., local vs. remote quantum backends, various hyperparameter optimizers). to use with the yaml file  
-  - *data_utils.py*: Loads and preprocesses MNIST data (with optional pixel masking).  
+  - *utils.py*: Mixed utilities. Loads and preprocesses MNIST data (with optional pixel masking).  Configs to switch between different setups (e.g., local vs. remote quantum backends, various hyperparameter optimizers), to use with the yaml file. Data utilities, contains helper functions such as accuracy and plotting,for plotting and embedding utils.
   - *model_quantum.py*: Defines the hybrid CNN+quantum model.  
   - *optimization.py*: Provides a unified interface for various hyperparameter search methods (TPE, grid search, Optuna, etc.).  
   - *quantum_backend.py*: Manages the selection between local simulation and remote QaaS (e.g., Scaleway).  
-  - *utils.py*: Contains helper functions such as accuracy and plotting.
   - *main_i.py*: Experiments scripts for running full training or optimization experiments, with logs and checkpoints stored in the `results/` subfolder.
 
 
@@ -50,9 +48,12 @@ This repository implements a hybrid machine learning pipeline that combines a cl
   - `pca_model.pkl`: The PCA model used to reduce the dimensionality of the images. This model is automatically generated during training and can be reused in subsequent experiments (including the quantum embedding pipeline).
 
 
-
 - **`results/`**  
   Where outputs are saved.  Stores all the outputs, including visualizations and performance reports.
+
+- **`doc/`**  
+  All the pdf document/papers related to the [First Perceval Quest](https://perceval.quandela.net/forum/t/first-perceval-quest-last-call-for-registration/217)
+
 
 
 ---
