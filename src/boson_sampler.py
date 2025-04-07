@@ -54,12 +54,12 @@ class TriangularInterferometerBuilder(InterferometerBuilder):
             # Use symbolic parameters: for a triangular mesh you need m*(m-1) parameters.
             parameters = [pcvl.P(f"phi_{i}") for i in range(m * (m - 1))]
         # Build the circuit using the local variable m and the correct variable name (parameters)
-        return pcvl.GenericInterferometer(m, lambda idx: (
-            pcvl.BS()
-            .add(0, pcvl.PS(safe_param(2 * idx, parameters)))
-            .add(0, pcvl.BS())
-            .add(0, pcvl.PS(safe_param(2 * idx + 1, parameters)))
-        ))
+        return pcvl.GenericInterferometer(m, lambda idx: (pcvl.BS()
+                                                             .add(0, pcvl.PS(safe_param(2 * idx, parameters)))
+                                                             .add(0, pcvl.BS())
+                                                             .add(0, pcvl.PS(safe_param(2 * idx+1, parameters)))
+                                                             )
+                                          ,shape=pcvl.InterferometerShape.TRIANGLE)
 
 
 class RectangularInterferometerBuilder(InterferometerBuilder):
@@ -68,13 +68,13 @@ class RectangularInterferometerBuilder(InterferometerBuilder):
             parameters = [pcvl.P(f"phi_rect_{i}") for i in range(m * (m - 1))]
         # For demonstration, we build two layers sequentially.
         # (Note: In practice, you’d implement the proper rectangular mesh.)
-        layer1 = pcvl.GenericInterferometer(m, lambda idx: (
-            pcvl.BS().add(0, pcvl.PS(safe_param(2 * idx, parameters)))
-        ))
-        layer2 = pcvl.GenericInterferometer(m, lambda idx: (
-            pcvl.BS().add(0, pcvl.PS(safe_param(2 * idx + 1, parameters)))
-        ))
-        return merge_circuits(layer1, layer2)
+        
+        return pcvl.GenericInterferometer(m, lambda idx: (pcvl.BS()
+                                                             .add(0, pcvl.PS(safe_param(2 * idx, parameters)))
+                                                             .add(0, pcvl.BS())
+                                                             .add(0, pcvl.PS(safe_param(2 * idx+1, parameters)))
+                                                             )
+                                          ,shape=pcvl.InterferometerShape.RECTANGLE)
 
 
 
@@ -129,6 +129,7 @@ class PdfInterferometerBuilder:
 
 
 class BaseInterferometerBuilder:
+    ###Is similar to rectangular but with a "hickup".
     def create_circuit(self, m: int, parameters: list = None) -> pcvl.Circuit:
         """
         Create an alternative interferometer circuit using a simplified rectangular layout.
@@ -151,7 +152,12 @@ class BaseInterferometerBuilder:
                     .add(0, pcvl.PS(parameters[2 * j + 1]), merge=True))
         
         circuit = pcvl.GenericInterferometer(m, base_lambda)
-        return circuit
+        return pcvl.GenericInterferometer(self.m, lambda idx: (pcvl.BS()
+                                                             .add(0, pcvl.PS(safe_param(2 * idx, parameters)))
+                                                             .add(0, pcvl.BS())
+                                                             .add(0, pcvl.PS(safe_param(2 * idx+1, parameters)))
+                                                             )
+                                          )
 
 
 
