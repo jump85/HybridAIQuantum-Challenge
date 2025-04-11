@@ -76,6 +76,19 @@ class RectangularInterferometerBuilder(InterferometerBuilder):
                                                              )
                                           ,shape=pcvl.InterferometerShape.RECTANGLE)
 
+class OurArchitecture(InterferometerBuilder):
+    def create_circuit(self, m: int, parameters: list[float] = None) -> pcvl.Circuit:
+        if parameters is None:
+            parameters = [pcvl.P(f"phi_rect_{i}") for i in range(m * (m - 1))]
+        # Architecture taken from example [PLEASE INSERT HERE FROM WHERE YOU TOOK THE CODE VINCENZO]
+        layer1 = pcvl.GenericInterferometer(m, lambda idx: (
+            pcvl.BS().add(0, pcvl.PS(safe_param(2 * idx, parameters)))
+        ))
+        layer2 = pcvl.GenericInterferometer(m, lambda idx: (
+            pcvl.BS().add(0, pcvl.PS(safe_param(2 * idx + 1, parameters)))
+        ))
+        return merge_circuits(layer1, layer2)
+
 
 
 class PdfInterferometerBuilder:
