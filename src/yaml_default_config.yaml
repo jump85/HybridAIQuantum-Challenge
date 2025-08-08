@@ -13,10 +13,10 @@ model:
   output_dim: 30
 
 quantum:
-  backend: "local"  # "local" or "scaleway"    
-  #use_scaleway: false     # False = use local simulation; True = use remote QPU via Scaleway
+  backend: "scaleway"  # "local" or "scaleway"    
+  use_scaleway: true     # False = use local simulation; True = use remote QPU via Scaleway
   n_modes: 24  #142
-  n_photons: 10  #27
+  n_photons: 20  #27
   postselect: 3
   n_samples: 1000  #
   circuit_type: "pdf"   # Options: "triangular", "rectangular", "pdf", "base"  # Options: "triangular", "rectangular"
