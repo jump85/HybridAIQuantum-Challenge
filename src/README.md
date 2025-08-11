@@ -4,7 +4,7 @@ This project explored a hybrid photonic-classical MNIST classification that prio
 We use bilinear or PCA-based compression to downsample images, map phase parameters to drive a boson-sampling circuit using GenericInterferometer meshes (triangular/rectangular variants) with optional post-selection, and create a quantum embedding vector from detection outcomes to concatenate with the classifier's input. A classical PCA baseline with the same parameter budget for unbiased comparison, training/evaluation utilities, and hooks for remote simulation via Scaleway's QaaS (used in the Quest) are also in the codebase. 
 
 
-Initial tests indicate that photonic embedding may operate as a feature map with low parameter counts. However, due to limited dataset size and simulator/QPU constraints, accuracy deltas should not be overinterpreted. Instead, we prioritize reproducibility (fixed configs, logged seeds, explicit downsampling), ablation levers (encoding, interferometer shape, sampling strategy), and MerLin's QuantumLayer compatibility for future benchmarking and speedups.
+Initial tests indicate that photonic embedding may operate as a feature map with low parameter counts. However, due to limited dataset size and simulator/QPU constraints, accuracy deltas should not be overinterpreted. Instead, we prioritize reproducibility (fixed configs, logged seeds, explicit downsampling), ablation levers (encoding, interferometer shape, sampling strategy), and MerLin's QuantumLayer future compatibility for benchmarking and speedups.
 
 ![Alt text](../overview_chart.png)
 
