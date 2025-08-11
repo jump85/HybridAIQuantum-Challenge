@@ -37,11 +37,9 @@ This repository implements a hybrid machine learning pipeline that combines a cl
   - *model_quantum.py*: Defines the hybrid CNN+quantum model.  
   - *optimization.py*: Provides a unified interface for various hyperparameter search methods (TPE, grid search, Optuna, etc.).  
   - *quantum_backend.py*: Manages the selection between local simulation and remote QaaS (e.g., Scaleway).  
-  - *main_i.py*: Experiments scripts for running full training or optimization experiments, with logs and checkpoints stored in the `results/` subfolder.
+  - *main.py*: Experiments scripts for running full training or optimization experiments, with logs and checkpoints stored in the `results/` subfolder.
 
 
-- **`notebooks/`**  
-  Interactive Jupyter notebooks for demonstration, exploration, and analysis. Notebooks serve as an all-in-one code that maps what is in the source files.
 
 - **`data/`**  
   - Holds the dataset of the MNIST files. `train.csv` and `test.csv` files (the reduced MNIST dataset).
@@ -51,7 +49,7 @@ This repository implements a hybrid machine learning pipeline that combines a cl
 - **`results/`**  
   Where outputs are saved.  Stores all the outputs, including visualizations and performance reports.
 
-- **`doc/`**  
+- **`examples/`**  
   All the pdf document/papers related to the [First Perceval Quest](https://perceval.quandela.net/forum/t/first-perceval-quest-last-call-for-registration/217)
 
 
@@ -60,7 +58,7 @@ This repository implements a hybrid machine learning pipeline that combines a cl
 
 
 
-## Installation
+## Setup
 
 This project uses [Conda](https://docs.conda.io/en/latest/) for environment management. To set up the environment, run the following commands:
 
