@@ -573,16 +573,16 @@ def main_classic():
     
     # Save a summary of results
     summary = {
-        'pca_components': n_components,
-        'explained_variance': explained_variance,
-        'final_train_accuracy': epoch_acc,
-        'final_val_accuracy': epoch_val_acc,
-        'final_train_f1_macro': f1_macro,
-        'final_val_f1_macro': val_f1_macro,
-        'train_loss': train_loss_list,
-        'train_accuracy': train_acc_list,
-        'val_loss': val_loss_list,
-        'val_accuracy': val_acc_list
+        'pca_components': int(n_components),
+        'explained_variance': float(explained_variance),
+        'final_train_accuracy': float(epoch_acc),
+        'final_val_accuracy': float(epoch_val_acc),
+        'final_train_f1_macro': float(f1_macro),
+        'final_val_f1_macro': float(val_f1_macro),
+        'train_loss': [float(x) for x in train_loss_list],
+        'train_accuracy': [float(x) for x in train_acc_list],
+        'val_loss': [float(x) for x in val_loss_list],
+        'val_accuracy': [float(x) for x in val_acc_list]
     }
     
     with open(f"{result_dir}/summary.pkl", "wb") as f:
